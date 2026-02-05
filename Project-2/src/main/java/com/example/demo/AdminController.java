@@ -235,7 +235,7 @@ public class AdminController {
                 m.put("id", t.getId());
                 m.put("username", t.getUser().getUsername());
                 m.put("email", t.getUser().getEmail());
-                m.put("qualification", t.getQualifications());
+                m.put("qualifications", t.getQualifications());
                 m.put("experience", t.getExperience());
                 return m;
             })
