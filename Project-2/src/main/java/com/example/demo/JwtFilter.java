@@ -44,6 +44,14 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+        
+        String path = request.getServletPath();
+
+        if (path.equals("/health") || path.startsWith("/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
 
         String token = authHeader.substring(7);
 
