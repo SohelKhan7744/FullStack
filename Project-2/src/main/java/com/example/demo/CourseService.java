@@ -89,5 +89,20 @@ public class CourseService {
 		            .map(Enrollment::getStudent)
 		            .toList();
 		}
+	 
+	 public Course updateCourse(Long id, CourseUpdateRequest request) {
+
+	        Course course = courseRepo.findById(id)
+	            .orElseThrow(() -> new RuntimeException("Course not found"));
+
+	        if (request.getTitle() == null || request.getTitle().isBlank()) {
+	            throw new RuntimeException("Title is required");
+	        }
+
+	        course.setTitle(request.getTitle());
+	        course.setDescription(request.getDescription());
+
+	        return courseRepo.save(course);
+	    }
 
 }
