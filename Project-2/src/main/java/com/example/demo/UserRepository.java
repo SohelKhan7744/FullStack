@@ -24,6 +24,9 @@ public interface UserRepository extends JpaRepository<UserSelf,Long> {
       Optional<UserSelf>findByUsername(String username);
       
       boolean existsByUsername(String Username);
+      
+      Optional<UserSelf>findByEmail(String email);
+      
 }
       interface StudentsRepository extends JpaRepository<Students,Long>{
     	  

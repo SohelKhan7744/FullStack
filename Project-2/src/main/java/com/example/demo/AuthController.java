@@ -26,24 +26,35 @@ public class AuthController {
 	private PasswordEncoder passwordEncoder;
 	
 	@PostMapping("/register")
-	public ResponseEntity<?>
-	register(@RequestBody UserSelf user) {
-		if(userRepo.findByUsername(user.getUsername()).isPresent()) {
-			return ResponseEntity
-					.badRequest()
-					.body("Username already exists");
-		}
-         
-		user.setPassword(passwordEncoder.encode(user.getPassword()));
-		
-		if(user.getRole() == null) {
-			user.setRole(Role.STUDENT);
-		}
-		 userRepo.save(user);
-		 
-		 return ResponseEntity.ok("User registered successfully");
-		     
+	public ResponseEntity<?> register(@RequestBody UserSelf user) {
+
+	    Map<String, String> errors = new HashMap<>();
+
+	    if (userRepo.findByUsername(user.getUsername()).isPresent()) {
+	        errors.put("username", "Username already exists");
+	    }
+
+	    if (userRepo.findByEmail(user.getEmail()).isPresent()) {
+	        errors.put("email", "Email already exists");
+	    }
+
+	    if (!errors.isEmpty()) {
+	        return ResponseEntity
+	                .status(HttpStatus.CONFLICT)
+	                .body(Map.of("errors", errors));
+	    }
+
+	    user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+	    if (user.getRole() == null) {
+	        user.setRole(Role.STUDENT);
+	    }
+
+	    userRepo.save(user);
+
+	    return ResponseEntity.ok("User registered successfully");
 	}
+
 	@PostMapping("/login")
 	public ResponseEntity<?>
 	login(@RequestBody UserSelf user){
