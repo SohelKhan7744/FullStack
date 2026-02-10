@@ -37,6 +37,11 @@ public class AuthController {
 	    if (userRepo.findByEmail(user.getEmail()).isPresent()) {
 	        errors.put("email", "Email already exists");
 	    }
+	    
+	    if (user.getPhone() == null || !user.getPhone().matches("\\d{10}")) {
+	        errors.put("phone", "Phone number must be exactly 10 digits");
+	    }
+
 
 	    if (!errors.isEmpty()) {
 	        return ResponseEntity
