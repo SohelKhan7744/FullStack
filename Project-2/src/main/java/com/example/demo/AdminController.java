@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.transaction.Transactional;
 
@@ -275,23 +277,50 @@ public class AdminController {
             @PathVariable Long id,
             @RequestBody UpdateTeacherDTO dto
     ) {
-        Teachers teacher = teacherRepo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Teacher not found"));
+    	Teachers teacher = teacherRepo.findById(id)
+    .orElseThrow(() -> new ResponseStatusException(
+            HttpStatus.NOT_FOUND, "Teacher not found"
+    ));
 
-        UserSelf user = teacher.getUser();
+UserSelf user = teacher.getUser();
 
-        // 🔹 Update UserSelf
-        user.setEmail(dto.email);
-        user.setPhone(dto.phone);
-        user.setImage_url(dto.image_url);
-        userRepo.save(user);
+Map<String, String> errors = new HashMap<>();
 
-        // 🔹 Update Teacher
-        teacher.setExperience(dto.experience);
-        teacher.setQualifications(dto.qualification);
-        teacherRepo.save(teacher);
+//🔹 Email uniqueness check (ignore current user)
+userRepo.findByEmail(dto.email)
+    .filter(existing -> !existing.getId().equals(user.getId()))
+    .ifPresent(existing -> errors.put("email", "Email already exists"));
 
-        return ResponseEntity.ok("Teacher updated successfully");
+//🔹 Phone validation
+if (dto.phone == null || !dto.phone.matches("\\d{10}")) {
+errors.put("phone", "Phone number must be exactly 10 digits");
+}
+
+//🔹 Experience validation
+if (dto.experience < 0) {
+errors.put("experience", "Experience must be a positive number");
+}
+
+//🔹 Stop if errors exist
+if (!errors.isEmpty()) {
+return ResponseEntity
+        .status(HttpStatus.BAD_REQUEST)
+        .body(Map.of("errors", errors));
+}
+
+//🔹 Update UserSelf
+user.setEmail(dto.email);
+user.setPhone(dto.phone);
+user.setImage_url(dto.image_url);
+userRepo.save(user);
+
+//🔹 Update Teacher
+teacher.setExperience(dto.experience);
+teacher.setQualifications(dto.qualification);
+teacherRepo.save(teacher);
+
+return ResponseEntity.ok("Teacher updated successfully");
+
     }
 
 }
