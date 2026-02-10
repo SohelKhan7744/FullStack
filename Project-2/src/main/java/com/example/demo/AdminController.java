@@ -152,6 +152,25 @@ public class AdminController {
            .orElseThrow(() -> new RuntimeException("Student not found"));
 
        UserSelf user = student.getUser();
+       
+    		Map<String, String> errors = new HashMap<>();
+
+    		//🔹 Email uniqueness check (ignore current user)
+    		userRepo.findByEmail(dto.email)
+    		    .filter(existing -> !existing.getId().equals(user.getId()))
+    		    .ifPresent(existing -> errors.put("email", "Email already exists"));
+
+    		//🔹 Phone validation
+    		if (dto.phone == null || !dto.phone.matches("\\d{10}")) {
+    		errors.put("phone", "Phone number must be exactly 10 digits");
+    		}
+
+    		//🔹 Stop if errors exist
+    		if (!errors.isEmpty()) {
+    		return ResponseEntity
+    		        .status(HttpStatus.BAD_REQUEST)
+    		        .body(Map.of("errors", errors));
+    		}
 
        // 🔹 Update UserSelf
        user.setUsername(dto.username);
