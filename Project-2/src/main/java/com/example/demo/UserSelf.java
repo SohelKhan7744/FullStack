@@ -18,10 +18,12 @@ public class UserSelf {
 	@Id 
 	@GeneratedValue(strategy = GenerationType.IDENTITY) 
      private Long id;
+	@Column(unique = true)
      private String username;
      @Pattern(
     	        regexp = "^[0-9]{10}$",
     	        message = "Phone number must be 10 digits")
+     @Column(unique = true)
      private String phone;
       @Column(unique = true)
      private String email;
